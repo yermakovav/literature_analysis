@@ -1,0 +1,63 @@
+!pip install pymorphy2  
+!pip install nltk
+
+import nltk
+import pymorphy2 as pm
+import pandas as pd                         
+from nltk.corpus import stopwords
+nltk.download('stopwords')
+
+import re
+
+import pandas as pd
+
+import pymorphy2
+
+a = pm.MorphAnalyzer()
+
+f = open ("dostoevsky.txt", encoding ="utf-8")
+text = f.read()
+f.close ()
+
+text = re.sub(r"\d+", "", text)
+
+text = re.split(r'\W+', text)
+
+for stopword in stopwords.words('russian'):
+    text = list(filter(lambda w: w != stopword, text))
+    
+dostoevsky_verbs_m = {}
+dostoevsky_verbs_f = {}
+dostoevsky_adjs_m = {}
+dostoevsky_adjs_f= {}
+
+
+for word in text:
+    m = a.parse(word)[0]
+    if m.tag.POS=='VERB':
+        if m.tag.gender =='masc':
+            if m.normal_form not in dostoevsky_verbs_m:
+                dostoevsky_verbs_m[m.normal_form]=1
+            else:
+                dostoevsky_verbs_m[m.normal_form]+=1
+        if m.tag.gender == 'femn':
+            if m.normal_form not in dostoevsky_verbs_f:
+                dostoevsky_verbs_f[m.normal_form]=1
+            else:
+                dostoevsky_verbs_f[m.normal_form]+=1
+    if m.tag.POS=='ADJS' or m.tag.POS=='ADJF':
+        if m.tag.gender == 'masc':
+            if m.normal_form not in dostoevsky_adjs_m:
+                dostoevsky_adjs_m[m.normal_form]=1
+            else:
+                dostoevsky_adjs_m[m.normal_form]+=1
+        if m.tag.gender == 'femn':
+            if m.normal_form not in dostoevsky_adjs_f:
+                dostoevsky_adjs_f[m.normal_form]=1
+            else:
+                dostoevsky_adjs_f[m.normal_form]+=1
+
+pd.DataFrame(index=dostoevsky_verbs_m.keys(), data=dostoevsky_verbs_m.values(), columns=['count']).to_csv('dostoevsky_verbs_m.csv')
+pd.DataFrame(index=dostoevsky_verbs_f.keys(), data=dostoevsky_verbs_f.values(), columns=['count']).to_csv('dostoevsky_verbs_f.csv')
+pd.DataFrame(index=dostoevsky_adjs_m.keys(), data=dostoevsky_adjs_m.values(), columns=['count']).to_csv('dostoevsky_adjs_m.csv')
+pd.DataFrame(index=dostoevsky_adjs_f.keys(), data=dostoevsky_adjs_f.values(), columns=['count']).to_csv('dostoevsky_adjs_f.csv')
